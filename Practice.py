@@ -386,5 +386,5 @@ print 'Current Vertical State', state_v
 while (1):
     gridgame.update();
   
-    time.sleep(2)
+    time.sleep(50)
 '''

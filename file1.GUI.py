@@ -318,7 +318,7 @@ class BoxesandGridsGame():
         Call the minimax/alpha-beta pruning  function to return the optimal move
         '''
         
-        ## change the next line of minimax/ aplpha-beta pruning according to your input and output requirments
+        ## change the next line of minimax/ alpha-beta pruning according to your input and output requirments
         next_move=self.minimax(self.boardh,self.boardv,0);
         #next_move_alpha=self.alphabetapruning();
         
@@ -329,8 +329,6 @@ class BoxesandGridsGame():
     '''
     Write down the code for minimax to a certain depth do no implement minimax all the way to the final state. 
     '''
-    
-   
     def minimax(self):
         
         return [0,0,0];  
@@ -338,16 +336,12 @@ class BoxesandGridsGame():
     '''
     Change the alpha beta pruning function to return the optimal move .
     ''' 
-
     def alphabetapruning(self):
         return [0,0,0];
     
     '''
     Write down you own evaluation strategy in the evaluation function 
     '''
-    
-    
-    
     def evaluate(self):
          return 0
     

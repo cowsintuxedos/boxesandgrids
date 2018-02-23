@@ -118,6 +118,8 @@ class BoxesGame():
             
         if(player_id==1):
             self.score_player2=self.score_player2+self.increment_score(move,self.boardh,self.boardv);
+        #ikimasu / delete later
+        #print self.current_state()
             
        
         
@@ -130,6 +132,8 @@ class BoxesGame():
         
         
         score=self.increment_score(move,h_matrix1,v_matrix1);
+        #ikimasu / delete later
+        #print score;
         #print move[2];
         if(move[2]==0):#vetical matrices
             
@@ -175,6 +179,13 @@ class BoxesGame():
         
         #print 'Player 1  next moves', next_move_list
         #print 'Player 1  move made', next_move_list[0];
+
+        #ikimasu / delete later
+        if self.score_player1 > 17:
+            #print "checking alphabeta"
+            #next_move_alpha=self.alphabetapruning(self.current_state());
+            print "checking minimax"
+            best_move=self.minimaxPlayer1(self.current_state());
         self.make_move(best_move,0);
         #print 'move made by player1', best_move
         
@@ -185,34 +196,271 @@ class BoxesGame():
         '''
         Call the minimax/alpha-beta pruning  function to return the optimal move
         '''
-        
         ## change the next line of minimax/ aplpha-beta pruning according to your input and output requirments
-        next_move=self.minimax();
-        next_move_alpha=self.alphabetapruning();
-        
+        next_move=self.minimax1(self.current_state());
+        #next_move_alpha=self.alphabetapruning(self.current_state());
+
+        #next_move=self.alphabetapruning(self.current_state());
+
+        #testing near end
+        #if self.score_player1 > 18:
+            #print "checking alphabeta"
+            #next_move_alpha=self.alphabetapruning(self.current_state());
+        #    print "checking minimax"
+        #    next_move=self.minimax(self.current_state());
         
         self.make_move(next_move,1);
         print 'move_made by player 1',next_move
-        
+
     '''
     Write down the code for minimax to a certain depth do no implement minimax all the way to the final state. 
     '''
-    
-    
-    def minimax(self):
+
+    def minimax(self, state):
+        #[x,y,orientation]; orientation = 0 if vertical, 1 if horizontal
+        #ex:
+        #[0,2,0] vertical edge between first row and third column
+        #[3,4,1] horizontal edge between fourth row and fifth column
+
+        # unpacks h and v from input state since list_possible_moves doesn't take a state
+        cur_h,cur_v = state
+
+        # helpers
+        def argmin(seq, fn):
+            """Return an element with lowest fn(seq[i]) score; tie goes to first one.
+            >>> argmin(['one', 'to', 'three'], len)
+            'to'
+            """
+            best = seq[0]; best_score = fn(best)
+            for x in seq:
+                x_score = fn(x)
+                if x_score < best_score:
+                    best, best_score = x, x_score
+            return best
+
+        def argmax(seq, fn):
+            """Return an element with highest fn(seq[i]) score; tie goes to first one.
+            >>> argmax(['one', 'to', 'three'], len)
+            'three'
+            """
+            return argmin(seq, lambda x: -fn(x))
+
+        # max value depending on input state
+        def max_value(h,v,lastmoved):
+            if self.game_ends(h,v):
+                return self.evaluate(h,v,lastmoved)
+
+            temp_value = float("-inf")
+            for m in self.list_possible_moves(h,v):
+                next_h, next_v, score = self.next_state(m,h,v)
+                temp_value = max(temp_value, min_value(next_h, next_v, lastmoved*-1))
+            return temp_value
+
+        # min value depending on input state
+        def min_value(h,v,lastmoved):
+            if self.game_ends(h,v):
+                return self.evaluate(h,v,lastmoved)
+
+            temp_value = float("inf")
+            for m in self.list_possible_moves(h,v):
+                next_h, next_v, score = self.next_state(m,h,v)
+                temp_value = max(temp_value, max_value(next_h, next_v, lastmoved*-1))
+            return temp_value
+
+        # unzips move to use min_value
+        def get_min(m):
+            next_h, next_v, score = self.next_state(m,cur_h,cur_v)
+            return min_value(next_h, next_v, -1)
+
+        #best_move = argmax(self.list_possible_moves(cur_h,cur_v), lambda m: get_min(m))
+        best_move = self.list_possible_moves(cur_h,cur_v)[0]
+        for m in self.list_possible_moves(cur_h,cur_v):
+            next_h, next_v, score = self.next_state(m,cur_h,cur_v)
+            if min_value(next_h, next_v, 1) == True:
+                return m
+        return best_move;
+
+    #delete later
+    def minimaxPlayer1(self, state):
+        #[x,y,orientation]; orientation = 0 if vertical, 1 if horizontal
+        #ex:
+        #[0,2,0] vertical edge between first row and third column
+        #[3,4,1] horizontal edge between fourth row and fifth column
+
+        # unpacks h and v from input state since list_possible_moves doesn't take a state
+        cur_h,cur_v = state
+
+        # helpers
+        def argmin(seq, fn):
+            """Return an element with lowest fn(seq[i]) score; tie goes to first one.
+            >>> argmin(['one', 'to', 'three'], len)
+            'to'
+            """
+            best = seq[0]; best_score = fn(best)
+            for x in seq:
+                x_score = fn(x)
+                if x_score < best_score:
+                    best, best_score = x, x_score
+            return best
+
+        def argmax(seq, fn):
+            """Return an element with highest fn(seq[i]) score; tie goes to first one.
+            >>> argmax(['one', 'to', 'three'], len)
+            'three'
+            """
+            return argmin(seq, lambda x: -fn(x))
+
+        # max value depending on input state
+        def max_value(h,v,lastmoved):
+            if self.game_ends(h,v):
+                return self.evaluate(h,v,lastmoved)
+
+            temp_value = float("-inf")
+            for m in self.list_possible_moves(h,v):
+                next_h, next_v, score = self.next_state(m,h,v)
+                temp_value = max(temp_value, min_value(next_h, next_v, lastmoved*-1))
+            return temp_value
+
+        # min value depending on input state
+        def min_value(h,v,lastmoved):
+            if self.game_ends(h,v):
+                return self.evaluate(h,v,lastmoved)
+
+            temp_value = float("inf")
+            for m in self.list_possible_moves(h,v):
+                next_h, next_v, score = self.next_state(m,h,v)
+                temp_value = max(temp_value, max_value(next_h, next_v, lastmoved*-1))
+            return temp_value
+
+        # unzips move to use min_value
+        def get_min(m):
+            next_h, next_v, score = self.next_state(m,cur_h,cur_v)
+            return min_value(next_h, next_v, 1)
+
+        #best_move = argmax(self.list_possible_moves(cur_h,cur_v), lambda m: get_min(m))
+        best_move = self.list_possible_moves(cur_h,cur_v)[0]
+        for m in self.list_possible_moves(cur_h,cur_v):
+            next_h, next_v, score = self.next_state(m,cur_h,cur_v)
+            if min_value(next_h, next_v, 1) == False:
+                return m
+        return best_move;
+
+    # example version using greedy algorithm
+    def minimax1(self, state):
+        h,v = state
         
-        return [0,0,0];  
+        next_move=self.list_possible_moves(h,v);
+        best_move=next_move[0];
+        best_score=0;
+        for move in next_move:
+            temp_h,temp_v,score=self.next_state(move,h,v);
+            if(score>best_score):
+                best_score=score;
+                best_move=move;
+        
+        return best_move;
+        
     '''
-    Chenge the alpha beta pruning function to return the optimal move .
+    Change the alpha beta pruning function to return the optimal move .
     '''    
-    def alphabetapruning(self):
-        return [0,0,0];
+    def alphabetapruning(self, state, d=4, cutoff_test=None, eval_fn=None):
+        #[x,y,orientation]; orientation = 0 if vertical, 1 if horizontal
+        #ex:
+        #[0,2,0] vertical edge between first row and third column
+        #[3,4,1] horizontal edge between fourth row and fifth column
+
+        # unpacks h and v from input state since list_possible_moves doesn't take a state
+        cur_h,cur_v = state
+
+        # helpers
+        def argmin(seq, fn):
+            """Return an element with lowest fn(seq[i]) score; tie goes to first one.
+            >>> argmin(['one', 'to', 'three'], len)
+            'to'
+            """
+            best = seq[0]; best_score = fn(best)
+            for x in seq:
+                x_score = fn(x)
+                if x_score < best_score:
+                    best, best_score = x, x_score
+            return best
+
+        def argmax(seq, fn):
+            """Return an element with highest fn(seq[i]) score; tie goes to first one.
+            >>> argmax(['one', 'to', 'three'], len)
+            'three'
+            """
+            return argmin(seq, lambda x: -fn(x))
+
+        # max value depending on input state
+        # lastmoved = 1 if player1, -1 if player2
+        def max_value(state, alpha, beta, depth, lastmoved):
+            h,v = state
+            #print 'max lastmoved: ', lastmoved
+            #print 'max depth: ', depth
+
+            if cutoff_test(h, v, depth):
+                return eval_fn(h, v, lastmoved)
+            temp_value = float("-inf");
+            for m in self.list_possible_moves(h,v):
+                next_h, next_v, score = self.next_state(m,h,v)
+                temp_value = max(temp_value, min_value((next_h,next_v), alpha, beta, depth+1, lastmoved*-1))
+                if temp_value >= beta:
+                    return temp_value
+                alpha = max(alpha, temp_value)
+            return temp_value
+
+        # min value depending on input state
+        # lastmoved = 1 if player1, -1 if player2
+        def min_value(state, alpha, beta, depth, lastmoved):
+            h,v = state
+            #print 'min lastmoved: ', lastmoved
+            #print 'min depth: ', depth
+
+            if cutoff_test(h, v, depth):
+                return eval_fn(h, v, lastmoved)
+            temp_value = float("inf");
+            for m in self.list_possible_moves(h,v):
+                next_h, next_v, score = self.next_state(m,h,v)
+                temp_value = max(temp_value, max_value((next_h,next_v), alpha, beta, depth+1, lastmoved*-1))
+                if temp_value <= alpha:
+                    return temp_value
+                beta = min(beta, temp_value)
+            return temp_value
+
+        # unzips move to use min_value
+        def get_min(m):
+            next_h, next_v, score = self.next_state(m,cur_h,cur_v)
+            return min_value((next_h,next_v), float("-inf"), float("inf"), 0, -1)
+
+        cutoff_test = (cutoff_test or (lambda h,v,depth: depth>d or self.game_ends(h,v)))
+        eval_fn = eval_fn or (lambda h,v,l: self.evaluate(h,v,l))
+        best_move = argmax(self.list_possible_moves(cur_h,cur_v), lambda m: get_min(m))
+        return best_move;
+        #return [0,0,0];
+
+    '''
+    Write down you own evaluation strategy in the evaluation function 
+    '''
+    # assumes player is player2
+    def evaluate(self, h, v, lastmoved):
+        #print 'eval lastmoved: ', lastmoved
+        #print 'evaluating ', h, ' ', v
+        #print 'eval Player1 score',self.score_player1;
+        #print 'eval Player2 score',self.score_player2;
+        if lastmoved == -1:
+            print "winning move for player2"
+            return True;
+        else:
+            print "winning move for player1"
+            return False;
      
 bg=BoxesGame();
 while (bg.game_ends(bg.boardh,bg.boardv)==False):
     bg.update();
     print 'Player1 :score',bg.score_player1;
     print 'Player2:score',bg.score_player2;
-    time.sleep(2)
-time.sleep(10)
+    #time.sleep(2)
+print 'Player 2 wins' if bg.score_player2 >= bg.score_player1 else 'Player 1 wins'
+#time.sleep(10)
 pygame.quit()
