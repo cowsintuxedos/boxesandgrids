@@ -312,38 +312,194 @@ class BoxesandGridsGame():
     You will make changes to the code from this part onwards
     '''
     def player2(self):
+        ## change the next line of minimax/ aplpha-beta pruning according to your input and output requirments
         temp_h=self.boardh
         temp_v=self.boardv
-        '''
-        Call the minimax/alpha-beta pruning  function to return the optimal move
-        '''
-        
-        ## change the next line of minimax/ alpha-beta pruning according to your input and output requirments
-        next_move=self.minimax(self.boardh,self.boardv,0);
-        #next_move_alpha=self.alphabetapruning();
-        
-        
-        self.make_move(next_move,1);
-        print 'move_made by player 1',next_move
-        
+
+        moves = self.list_possible_moves(temp_h,temp_v)
+
+        #next_move=self.minimax(self.current_state(), 0); #minimax search
+        next_move=self.alphabetapruning(self.current_state(), 1); #alpha-beta pruning version
+
+        self.make_move(next_move,1)
+        print 'move_made by player 2',next_move
+
     '''
     Write down the code for minimax to a certain depth do no implement minimax all the way to the final state. 
     '''
-    def minimax(self):
+
+    def minimax(self, state, input_depth):
+        # cutoff depth
+        d = input_depth
+
+        # unpacks h and v from input state
+        cur_h,cur_v = state
+
+        # setting up argmax
+        def argmin(seq, fn):
+            best = seq[0]; best_score = fn(best)
+            for x in seq:
+                x_score = fn(x)
+                if x_score < best_score:
+                    best, best_score = x, x_score
+            return best
+
+        def argmax(seq, fn):
+            return argmin(seq, lambda x: -fn(x))
+
+        # max value for player 2; s1 & s2 = player1 & player2 score deltas
+        def max_value(h,v,depth,s1,s2):
+            if depth > d or self.game_ends(h,v):
+                return self.evaluate(h,v,s1,s2)
+
+            next_moves = self.list_possible_moves(h,v)
+            temp_value = float("-inf")
+            for m in next_moves:
+                next_h, next_v, next_score = self.next_state(m,h,v)
+                temp_value = max(temp_value, min_value(next_h, next_v, depth+1, s1, s2-next_score))
+            return temp_value
+
+        # min value for player 1; s1 & s2 = player1 & player2 score deltas
+        def min_value(h,v,depth,s1,s2):
+            if depth > d or self.game_ends(h,v):
+                return self.evaluate(h,v,s1,s2)
+
+            next_moves = self.list_possible_moves(h,v)
+            temp_value = float("inf")
+            for m in next_moves:
+                next_h, next_v, next_score = self.next_state(m,h,v)
+                temp_value = min(temp_value, max_value(next_h, next_v, depth+1, s1+next_score, s2))
+            return temp_value
+
+        # unzips move to use min_value
+        def get_min(m):
+            next_h, next_v, score = self.next_state(m,cur_h,cur_v)
+            return min_value(next_h, next_v, 0, 0, 0)
         
-        return [0,0,0];  
-    
+        # find best move
+        best_move = argmax(self.list_possible_moves(cur_h,cur_v), lambda m: get_min(m))
+        return best_move;
+        
     '''
     Change the alpha beta pruning function to return the optimal move .
-    ''' 
-    def alphabetapruning(self):
-        return [0,0,0];
-    
+    '''    
+    def alphabetapruning(self, state, input_depth):
+        # cutoff depth
+        d = input_depth
+
+        # unpacks h and v from input state
+        cur_h,cur_v = state
+
+        # setting up argmax
+        def argmin(seq, fn):
+            best = seq[0]; best_score = fn(best)
+            for x in seq:
+                x_score = fn(x)
+                if x_score < best_score:
+                    best, best_score = x, x_score
+            return best
+
+        def argmax(seq, fn):
+            return argmin(seq, lambda x: -fn(x))
+
+        # max value for player2; s1 & s2 = player1 & player2 score deltas
+        def max_value(state, alpha, beta, depth, s1, s2, print_values=False):
+            h,v = state
+
+            # don't print alpha and beta values by default
+            if print_values is False:
+                if depth > d or self.game_ends(h,v):
+                    return self.evaluate(h,v,s1,s2)
+
+                next_moves = self.list_possible_moves(h,v)
+                temp_value = float("-inf")
+                for m in next_moves:
+                    next_h, next_v, next_score = self.next_state(m,h,v)
+                    temp_value = max(temp_value, min_value((next_h,next_v), alpha, beta, depth+1, s1, s2-next_score))
+                    if temp_value >= beta:
+                        return temp_value
+                    alpha = max(alpha, temp_value)
+                return temp_value
+
+            # print alpha and beta values
+            else:
+                if depth > d or self.game_ends(h,v):
+                    return self.evaluate(h,v,s1,s2)
+
+                next_moves = self.list_possible_moves(h,v)
+                temp_value = float("-inf")
+                for m in next_moves:
+                    next_h, next_v, next_score = self.next_state(m,h,v)
+                    temp_value = max(temp_value, min_value((next_h,next_v), alpha, beta, depth+1, s1, s2-next_score, True))
+                    if temp_value >= beta:
+                        return temp_value
+                    alpha = max(alpha, temp_value)
+
+                # print final alpha and beta values
+                print "Alpha: ",alpha," Beta: ",beta
+                return temp_value
+
+        # min value for player1; s1 & s2 = player1 & player2 score deltas
+        def min_value(state, alpha, beta, depth, s1, s2, print_values=False):
+            h,v = state
+
+            # don't print by default
+            if print_values is False:
+                if depth > d or self.game_ends(h,v):
+                    return self.evaluate(h,v,s1,s2)
+
+                next_moves = self.list_possible_moves(h,v)
+                temp_value = float("inf")
+                for m in next_moves:
+                    next_h, next_v, next_score = self.next_state(m,h,v)
+                    temp_value = min(temp_value, max_value((next_h,next_v), alpha, beta, depth+1, s1+next_score, s2))
+                    if temp_value <= alpha:
+                        return temp_value
+                    beta = min(beta, temp_value)
+                return temp_value
+
+            # otherwise request to print alpha and beta values
+            else:
+                if depth > d or self.game_ends(h,v):
+                    return self.evaluate(h,v,s1,s2)
+
+                next_moves = self.list_possible_moves(h,v)
+                temp_value = float("inf")
+                for m in next_moves:
+                    next_h, next_v, next_score = self.next_state(m,h,v)
+                    temp_value = min(temp_value, max_value((next_h,next_v), alpha, beta, depth+1, s1+next_score, s2, True))
+                    if temp_value <= alpha:
+                        return temp_value
+                    beta = min(beta, temp_value)
+                return temp_value
+
+        # unzips move to use min_value
+        def get_min(m):
+            next_h, next_v, next_score = self.next_state(m,cur_h,cur_v)
+            return min_value((next_h,next_v), float("-inf"), float("inf"), 0, 0, 0)
+
+        # prints final alpha and beta values after finding the best move
+        def print_final_values(m):
+            next_h, next_v, next_score = self.next_state(m,cur_h,cur_v)
+            return min_value((next_h,next_v), float("-inf"), float("inf"), 0, 0, 0, True)
+
+        # find best move
+        best_move = argmax(self.list_possible_moves(cur_h,cur_v), lambda m: get_min(m))
+
+        # print final alpha and beta values
+        print_final_values(best_move)
+        return best_move
+
     '''
     Write down you own evaluation strategy in the evaluation function 
     '''
-    def evaluate(self):
-         return 0
+    # assumes player is player2
+    # calculates the optimal score delta difference and picks move based on that
+    # s1 = player1 score delta, s2 = player2 score delta
+    def evaluate(self, h, v, s1, s2): 
+        score = s2 - s1
+        #print "Score delta: ",score
+        return score
     
  
 bg=BoxesandGridsGame();
