@@ -160,7 +160,6 @@ class BoxesGame():
                     count=False;
         return count;
     def player1(self):
-        #import random
         temp_h=self.boardh
         temp_v=self.boardv
         
@@ -191,18 +190,13 @@ class BoxesGame():
         Call the minimax/alpha-beta pruning  function to return the optimal move
         '''
         ## change the next line of minimax/ aplpha-beta pruning according to your input and output requirments
-        #next_move=self.minimax1(self.current_state());
-        #next_move_alpha=self.alphabetapruning(self.current_state());
-
-        #next_move=self.alphabetapruning(self.current_state());
         temp_h=self.boardh
         temp_v=self.boardv
 
         moves = self.list_possible_moves(temp_h,temp_v)
-        
-        #experimenting with transposition table/IDS
-        #next_move=self.minimax(self.current_state(), 1);
-        next_move=self.alphabetapruning(self.current_state(), 1);
+
+        next_move=self.minimax(self.current_state(), 0); #minimax search
+        next_move_alpha=self.alphabetapruning(self.current_state(), 1); #alpha-beta pruning version
 
         self.make_move(next_move,1)
         print 'move_made by player 2',next_move
@@ -215,7 +209,7 @@ class BoxesGame():
         # cutoff depth
         d = input_depth
 
-        # unpacks h and v from input state since list_possible_moves doesn't take a state
+        # unpacks h and v from input state
         cur_h,cur_v = state
 
         # setting up argmax
@@ -230,24 +224,26 @@ class BoxesGame():
         def argmax(seq, fn):
             return argmin(seq, lambda x: -fn(x))
 
-        # max value for player 2
+        # max value for player 2; s1 & s2 = player1 & player2 score deltas
         def max_value(h,v,depth,s1,s2):
             if depth > d or self.game_ends(h,v):
                 return self.evaluate(h,v,s1,s2)
 
+            next_moves = self.list_possible_moves(h,v)
             temp_value = float("-inf")
-            for m in self.list_possible_moves(h,v):
+            for m in next_moves:
                 next_h, next_v, next_score = self.next_state(m,h,v)
                 temp_value = max(temp_value, min_value(next_h, next_v, depth+1, s1, s2-next_score))
             return temp_value
 
-        # min value for player 1
+        # min value for player 1; s1 & s2 = player1 & player2 score deltas
         def min_value(h,v,depth,s1,s2):
             if depth > d or self.game_ends(h,v):
                 return self.evaluate(h,v,s1,s2)
 
+            next_moves = self.list_possible_moves(h,v)
             temp_value = float("inf")
-            for m in self.list_possible_moves(h,v):
+            for m in next_moves:
                 next_h, next_v, next_score = self.next_state(m,h,v)
                 temp_value = min(temp_value, max_value(next_h, next_v, depth+1, s1+next_score, s2))
             return temp_value
@@ -259,21 +255,6 @@ class BoxesGame():
         
         best_move = argmax(self.list_possible_moves(cur_h,cur_v), lambda m: get_min(m))
         return best_move;
-
-    # example version using greedy algorithm
-    def minimax1(self, state):
-        h,v = state
-        
-        next_move=self.list_possible_moves(h,v);
-        best_move=next_move[0];
-        best_score=0;
-        for move in next_move:
-            temp_h,temp_v,score=self.next_state(move,h,v);
-            if(score>best_score):
-                best_score=score;
-                best_move=move;
-        
-        return best_move;
         
     '''
     Change the alpha beta pruning function to return the optimal move .
@@ -282,7 +263,7 @@ class BoxesGame():
         # cutoff depth
         d = input_depth
 
-        # unpacks h and v from input state since list_possible_moves doesn't take a state
+        # unpacks h and v from input state
         cur_h,cur_v = state
 
         # setting up argmax
@@ -297,15 +278,15 @@ class BoxesGame():
         def argmax(seq, fn):
             return argmin(seq, lambda x: -fn(x))
 
-        # max value for player2
+        # max value for player2; s1 & s2 = player1 & player2 score deltas
         def max_value(state, alpha, beta, depth, s1, s2):
             h,v = state
-            next_moves = self.list_possible_moves(h,v)
 
             if depth > d or self.game_ends(h,v):
                 return self.evaluate(h,v,s1,s2)
 
-            temp_value = float("-inf");
+            next_moves = self.list_possible_moves(h,v)
+            temp_value = float("-inf")
             for m in next_moves:
                 next_h, next_v, next_score = self.next_state(m,h,v)
                 temp_value = max(temp_value, min_value((next_h,next_v), alpha, beta, depth+1, s1, s2-next_score))
@@ -314,15 +295,15 @@ class BoxesGame():
                 alpha = max(alpha, temp_value)
             return temp_value
 
-        # min value for player1
+        # min value for player1; s1 & s2 = player1 & player2 score deltas
         def min_value(state, alpha, beta, depth, s1, s2):
             h,v = state
-            next_moves = self.list_possible_moves(h,v)
 
             if depth > d or self.game_ends(h,v):
                 return self.evaluate(h,v,s1,s2)
 
-            temp_value = float("inf");
+            next_moves = self.list_possible_moves(h,v)
+            temp_value = float("inf")
             for m in next_moves:
                 next_h, next_v, next_score = self.next_state(m,h,v)
                 temp_value = min(temp_value, max_value((next_h,next_v), alpha, beta, depth+1, s1+next_score, s2))
@@ -337,14 +318,18 @@ class BoxesGame():
             return min_value((next_h,next_v), float("-inf"), float("inf"), 0, 0, 0)
 
         best_move = argmax(self.list_possible_moves(cur_h,cur_v), lambda m: get_min(m))
+        #print "Best move: ",best_move
+        #print "Best score: ",get_min(best_move)
         return best_move
 
     '''
     Write down you own evaluation strategy in the evaluation function 
     '''
     # assumes player is player2
-    def evaluate(self, h, v, s1, s2): #s1 = player 1 score delta, s2 = player 2 score delta
+    # calculates the optimal score delta difference and picks move based on that
+    def evaluate(self, h, v, s1, s2): #s1 = player1 score delta, s2 = player2 score delta
         score = s2 - s1
+        #print "Score delta: ",score
         return score
         
      
