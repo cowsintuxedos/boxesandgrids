@@ -1,6 +1,5 @@
 # boxesandgrids
 CS165a Programming Assignment 1
-Andrew Lai, 9519687
 
 I used [sampleboxesandgrids.py](sampleboxesandgrids.py) for this assignment.
 
